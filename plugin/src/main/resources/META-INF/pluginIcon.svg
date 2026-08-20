@@ -1,0 +1,19 @@
+<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+  <!-- ApiScope 图标：原创几何牛头，无外部素材，随本仓库 MIT 授权分发 -->
+  <!-- 双角：从头顶中央向两侧上扬 -->
+  <path d="M18 14 C12 13 6 11 3 5" fill="none" stroke="#E8712C" stroke-width="4.2" stroke-linecap="round"/>
+  <path d="M22 14 C28 13 34 11 37 5" fill="none" stroke="#E8712C" stroke-width="4.2" stroke-linecap="round"/>
+  <!-- 左耳 / 右耳 -->
+  <path d="M11 18 Q4 19 5 25 Q11 23 13 20 Z" fill="#E8712C"/>
+  <path d="M29 18 Q36 19 35 25 Q29 23 27 20 Z" fill="#E8712C"/>
+  <!-- 大脸 -->
+  <path d="M10 14 Q7 27 20 37 Q33 27 30 14 Q20 17 10 14 Z" fill="#E8712C"/>
+  <!-- 奶油色口鼻 -->
+  <ellipse cx="20" cy="30.5" rx="6" ry="4.3" fill="#F7E0C0"/>
+  <!-- 眼睛 -->
+  <ellipse cx="15.5" cy="23" rx="1.8" ry="2.3" fill="#4A2010"/>
+  <ellipse cx="24.5" cy="23" rx="1.8" ry="2.3" fill="#4A2010"/>
+  <!-- 鼻孔 -->
+  <ellipse cx="17.4" cy="30.5" rx="1.1" ry="1.4" fill="#4A2010"/>
+  <ellipse cx="22.6" cy="30.5" rx="1.1" ry="1.4" fill="#4A2010"/>
+</svg>

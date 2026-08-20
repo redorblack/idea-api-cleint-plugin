@@ -1,0 +1,6 @@
+<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+  <!-- gutter 图标：纸飞机式发送箭头，浅色/深色主题下都够对比 -->
+  <path d="M2 8h8" stroke="#3592C4" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M8.5 4.5 L12.5 8 L8.5 11.5" fill="none" stroke="#3592C4" stroke-width="1.6"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

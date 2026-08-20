@@ -1,0 +1,13 @@
+.gradle/
+build/
+*/build/
+out/
+.idea/
+*.iml
+.kotlin/
+local.properties
+.intellijPlatform/
+
+*.pem
+*.crt
+docs/

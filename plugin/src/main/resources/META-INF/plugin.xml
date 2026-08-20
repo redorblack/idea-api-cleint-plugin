@@ -1,0 +1,144 @@
+<idea-plugin>
+    <id>dev.red.apiscope</id>
+    <name>ApiScope</name>
+    <!-- TODO 发布前替换 email 与 url 为真实值（Marketplace 审核要求 vendor 可联系）。
+         email 是联系邮箱；url 指向 GitHub 仓库（也是用户反馈/issues 入口）。 -->
+    <vendor email="redorblacck886@gmail.com" url="https://github.com/redorblack/idea-api-cleint-plugin">Red</vendor>
+
+    <!--
+      规则（实测自 plugin-structure 的 DescriptionNotStartingWithLatinCharacters）：
+      "The plugin description must start with Latin characters and have at least 40 characters."
+      —— 只要求**开头**是拉丁字符 + 至少 40 字，正文写中文没问题，所以下面第一段是英文、其余中文。
+      另有 HttpLinkInDescription 规则，正文里别写 http:// 链接。
+    -->
+    <!-- change-notes 没有「开头须拉丁字符」那条规则（只有 description 有），可以直接写中文 -->
+    <change-notes><![CDATA[
+        <p><b>0.3.1</b>（产品 + UI 打磨）</p>
+        <ul>
+          <li>gutter 图标提示改为「在面板中打开该接口（填好后点发送）」——点它是<b>填面板</b>不是直接发送，措辞与右键菜单统一</li>
+          <li>从 Controller 一键填好一个带 body 的接口后<b>自动切到 Body 页签</b>，不再把源码生成的全字段 JSON 藏在相邻页签后</li>
+          <li>窄工具窗口下：底部消息不再与右侧接口名<b>相互覆盖</b>；各页签顶部的说明文字不再<b>盖住「批量编辑」链接</b></li>
+          <li>cURL 部分导入（忽略了不支持的 flag）改用提示色 +「已导入」正向措辞，不再像导入失败</li>
+          <li>空响应体 / 204 时 Body 区明写「（空响应体）」，与「还没发过」区分开</li>
+          <li>复制 cURL / 复制响应体 / 保存响应在没有内容时会给一句提示，不再静默无反应</li>
+          <li>multipart 选完文件若该行还没字段名，光标自动落到「名字」格——避免没名字的文件被静默丢弃</li>
+          <li>接口全限定名截断后可用 tooltip 看全；Headers / Cookie / 实际请求的等宽字体与编辑器对齐</li>
+        </ul>
+        <p><b>0.3.0</b></p>
+        <ul>
+          <li><b>修</b>：请求区与响应区的页签标题在 2026.x 上整排不显示（只剩选中项的蓝色下划线）——
+              根因是 <code>SCROLL_TAB_LAYOUT</code> 那条路径，已改回 <code>WRAP</code> 并加了离屏渲染回归测试</li>
+          <li><b>安全</b>：全局 Headers / 变量 / Cookie / 历史从 <code>.idea/apiscope.xml</code> 挪到
+              <code>workspace.xml</code> —— 前者默认跟着 git 走，等于把 token 和 session 推上远端。
+              旧位置会被自动读一次并迁移；<b>若它已进过版本库，请自行 <code>git rm --cached</code></b></li>
+          <li>带空格 / 中文的参数值不再报「URL 非法」：百分号编码改到发送前最后一步做，界面上始终是你敲的原文</li>
+          <li>读超时默认 15s → 300s（断点调试时 15s 会在你还在单步时掐断连接），可在标题栏齿轮菜单里改</li>
+          <li>窄工具窗口下路径输入框不再被挤成 0 宽；六个页签在 400px 下不再摞行</li>
+          <li>重名参数（<code>ids=1&amp;ids=2</code>）回写地址栏时不再被折叠成最后一个</li>
+          <li>同一个接口重复点 gutter 不再清掉你手填的 body（要按最新源码重填走齿轮菜单「从源码重新填充」）</li>
+          <li><code>@RequestHeader</code> / <code>@CookieValue</code> / 无注解的查询对象现在也会从源码读出来</li>
+          <li>请求 Body 换成平台 Editor：手敲 JSON 有高亮、折叠、非法 JSON 直接标红</li>
+          <li>新增「在 ApiScope 里打开当前接口」动作（编辑器右键 / Tools 菜单 / <code>⌥⌘A</code>）</li>
+          <li>「历史」和导出/导入等命令搬到工具窗口标题栏；表格空占位行不再显示成"已勾选"；
+              mac 上按 delete 能删表格行了</li>
+        </ul>
+        <p><b>0.2.0</b>：上下分栏、六种 body 格式、<code>{{变量}}</code>、全局 Headers、请求历史、cURL 导入导出</p>
+    ]]></change-notes>
+
+    <description><![CDATA[
+        <p><b>ApiScope</b> is a lightweight API client that lives in your IDE. Send a request straight
+        from a Spring Controller method with one click, or just type a URL by hand.</p>
+
+        <h3>背景</h3>
+        <p>后端改完一个 Controller 想立刻试一下，通常只有两条路：<b>切到 Postman / Apifox</b> —— 手抄
+        method、路径，再把入参 DTO 的字段一个个敲成 JSON；或者<b>写一个 .http 文件</b> —— body 同样得手写。
+        接口字段一改，这份手抄件就得再抄一遍。</p>
+        <p>而真正别扭的地方是：<b>这些信息源码里全都有</b>，只是没人把它们递到你面前。</p>
+
+        <h3>为什么做这个</h3>
+        <p>ApiScope 只做一件「只有 IDE 插件才做得到」的事：<b>从源码把请求填好</b>。</p>
+        <ul>
+          <li>Controller 方法旁点一下 ➜：method、路径、以及入参 DTO <b>递归展开成的全字段 JSON body</b>
+              直接填好（含父类字段、泛型代入、<code>@JsonProperty</code> 改名、<code>@JsonIgnore</code> 跳过）</li>
+          <li><code>@RequestParam</code> 的<b>参数类型</b>与方法 javadoc 的 <code>@param</code>
+              <b>说明</b>一起进表格；非必填参数默认不勾选</li>
+          <li><code>@RequestHeader</code> / <code>@CookieValue</code> 自动补进 Headers / Cookie 页签
+              （<b>只补不覆盖</b>，不会冲掉你手写的鉴权头）</li>
+          <li>没写注解的查询对象（<code>list(OrderQueryDTO q)</code>）也会摊开成 query 参数</li>
+          <li><code>{id}</code> 这类填不出样例值的路径占位符<b>留着并拦住发送</b>，
+              而不是悄悄替成空串、发出一个「看起来完整」的错地址</li>
+        </ul>
+
+        <h3>和常用 REST 客户端的区别</h3>
+        <ul>
+          <li><b>vs Postman / Apifox</b>：它们是完整的 API 平台（协作、Mock、自动化测试、云同步），
+              body 靠你手填或从文档导入。ApiScope 不做平台，<b>body 从源码来</b>；没有账号、没有云端，
+              所有状态存在本机的 <code>workspace.xml</code> 里，不进版本库。</li>
+          <li><b>vs IDEA 自带的 HTTP Client（.http 文件）</b>：它把请求当脚本纳入版本库，适合固化用例；
+              但<b>只有 Ultimate 才有</b>，而且 body 仍要手写。ApiScope 自带请求引擎，
+              <b>Community 版直接可用</b>，面向的是「我现在就想试一下这个接口」。</li>
+          <li><b>vs 同类 IDE 插件</b>：思路接近，ApiScope 刻意做得更薄 —— 不做环境集合，
+              不做服务发现 / 网关前缀推断（做过，「猜错地址」的排错成本高于自己填一次），
+              不做多标签与请求集合管理。</li>
+        </ul>
+
+        <h3>轻量在哪</h3>
+        <ul>
+          <li>一个工具窗口就是全部：没有登录、没有账号、没有云同步、没有 Mock、没有测试编排</li>
+          <li><code>core</code> 层<b>零第三方依赖</b>：响应美化是自己写的单遍扫描器，不引 Jackson / Gson，
+              不会和平台自带版本打架</li>
+          <li>请求引擎用 JDK 自带的 <code>HttpClient</code>，所以 Community 版也发得出请求</li>
+          <li>没有配置文件，装完即用，面板上改完即生效</li>
+        </ul>
+
+        <h3>已知边界</h3>
+        <ul>
+          <li>只扫 Java 源码，Kotlin 写的 Controller 暂不识别</li>
+          <li>一次开一个请求（没有多标签 / 请求集合）</li>
+          <li>地址由你给，插件不猜服务发现与网关前缀</li>
+        </ul>
+
+        <h3>反馈</h3>
+        <p>Bug 或建议欢迎提到本插件的 <b>GitHub issues</b>（仓库地址见插件详情页的 vendor 链接），
+        也可直接邮件联系作者。</p>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.java</depends>
+    <!-- 响应体用平台的 JSON 语言支持做高亮/折叠/校验（2024.2 起 JSON 是 platform 自带模块） -->
+    <depends>com.intellij.modules.json</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!--
+          工具窗口图标用 PNG + @2x 而不是 SVG：@2x 视网膜变体是 IconLoader 的原生能力，
+          小尺寸下位图比矢量更可控（marketplace 那张 pluginIcon.svg 才用矢量）。
+        -->
+        <toolWindow id="ApiScope"
+                    anchor="right"
+                    icon="/icons/apiscope.png"
+                    factoryClass="dev.red.apiscope.plugin.ui.ApiScopeToolWindowFactory"/>
+
+        <!-- Controller / Feign 方法旁的发送图标 -->
+        <codeInsight.lineMarkerProvider
+                language="JAVA"
+                implementationClass="dev.red.apiscope.plugin.gutter.EndpointLineMarkerProvider"/>
+    </extensions>
+
+    <actions>
+        <!--
+          gutter 图标之外的键盘入口：不注册 action 的话，唯一入口是鼠标点行号旁的小图标，
+          Cmd+Shift+A 搜不到、keymap 里也没有可绑的项。
+          action 的 text/description 保持英文：它们会进 keymap 和 Find Action 的搜索索引，英文更好搜。
+        -->
+        <action id="ApiScope.OpenEndpoint"
+                class="dev.red.apiscope.plugin.actions.OpenEndpointAction"
+                text="Open Endpoint in ApiScope"
+                description="Fill the ApiScope panel from the endpoint under the caret">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <!-- 这两个键位在 IDEA 自带 keymap 里都是空的（control alt A 已被 Diff.ApplyRightSide 占用，不能用） -->
+            <keyboard-shortcut keymap="$default" first-keystroke="control alt shift A"/>
+            <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta alt A"/>
+        </action>
+    </actions>
+</idea-plugin>
